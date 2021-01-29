@@ -13,7 +13,7 @@ trainingLabels = ["safe","safe","safe","safe","safe","safe","safe","safe","safe"
 
 """
 #this method counts the number of occurences of features in the entire file (because baggedLog and baseLog refer to the same thing. This is poor code)
-#TODO: Remove or improve this function.
+#TODO: Remove or improve this function
 def bag(log): #implement bagofwords
     baggedLog = baseLog #start with a vector of 0's (n zeros, n dictionary members)
     for feature in log: #look at each feature in the log
