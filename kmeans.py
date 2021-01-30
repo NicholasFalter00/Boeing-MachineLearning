@@ -1,14 +1,15 @@
 import re
-import pandas as pd
+#import pandas as pd
 import numpy as np
 from sklearn.cluster import KMeans
 
-logs = open('compiledLogs.txt', 'r') #TODO: INSERT LOCATION OF LOG FILE HERE
-dictionary = []
+logs = open('School_Logs/ANON-secure-20210117', 'r') #TODO: INSERT LOCATION OF LOG FILE HERE
+dictionary = {}
 baseLog = [] #Will be added to as dictionary is populated. Has a 0 for each dictionary member.
 logSet = []
-tf = []
-idf = []
+baggedLogSet = []
+tf = {}
+idf = {}
 #def inDictionary(feature):
 #    for member in dictionary:
 #        if member == feature:
@@ -42,114 +43,139 @@ def bag(log): #implement bagofwords
         inDictionary = 0 #represents if the feature is found in the dictionary
         for member in dictionary: #search through dictionary
             if member == feature: #if feature is in dictionary
-                baggedLog[count] += 1 #add 1 to the frequency of the feature
+                baggedLog[count] += (1/len(log)) #add 1 to the frequency of the feature
                 inDictionary = 1
+                dictionary.update({member: dictionary.get(member) + 1})
                 break #exit search for feature in dictionary
             count += 1
         if not inDictionary: #if feature isn't in dictionary
-            dictionary.append(feature) #add it to the dictionary
+            dictionary.update({feature: 1}) #add it to the dictionary
             baseLog.append(0) #add a zero for the new feature
-            baggedLog.append(1) #Count the new feature
+            baggedLog.append((1/len(log))) #Count the new feature
     return baggedLog
 
 for line in logs:
+    #logSet.append(line)
     if re.search("^\[",line): #log starts with a square bracket, indicating this is an error.log log
-        print('************Error LOG*************')
+        #print('************Error LOG*************')
         line = re.split("\[", line, 1)[1]
         date = re.split("(?<=.{10})\s", line, 1)[0] #gets first part of date. Will be concatenated with year later
         line = re.split("(?<=.{10})\s", line, 1)[1]
         time = re.split("\s", line, 1)[0]
-        print("time = " + time)
+        #print("time = " + time)
         line = re.split("\s", line, 1)[1]
         date = date + " " + re.split("]", line, 1)[0] #concatenates year with the rest of the date
-        print("date = " + date)
+        #print("date = " + date)
         line = re.split("]", line, 1)[1]
         line = re.split("\[", line, 1) [1]
         logType = re.split("\]", line, 1) [0]
-        print("log type = " + logType)
+        #print("log type = " + logType)
         line = re.split("\[", line, 1) [1]
         IDs = re.split("\]", line, 1) [0]
         PID = re.split("\s", IDs, 1)[1]
         PID = re.split("\:", PID, 1)[0]
-        print("PID = " + PID)
+        #print("PID = " + PID)
         TID = re.split("\s", IDs, 2)[2]
-        print("TID = " + TID)
+        #print("TID = " + TID)
         if re.search("\[(?=client)", line): #ignore if brackets arent for client
             line = re.split("\[", line, 1)[1]
             line = re.split("\s", line, 1)[1]
             client = re.split("\]", line, 1)[0]
-            print("client = " + client)
+            #print("client = " + client)
         line = re.split("\s(?=A)", line, 1)[1] #find space followed by "A" 
         errorCode = re.split("\:", line, 1)[0]
-        print("error code = " + errorCode)
+        #print("error code = " + errorCode)
         msg = re.split("\:", line, 1)[1]
-        print("message =" + msg, end = "" ) #TODO: remove \n from the end of msg
+        msg = re.split("\t", msg, 1)[0]
+        #print("message =" + msg, end = "" ) #TODO: remove \n from the end of msg
         log = [time, date, logType, errorCode, msg]
         baggedLog = bag(log)
-        print("bagged log: ", end = "")
-        print(baggedLog)
-        logSet.append(baggedLog)
-        print("")
+        del log
+        #print("bagged log: ", end = "")
+        #print(baggedLog)
+        baggedLogSet.append(baggedLog)
+        #print("")
         
     elif re.search("^\d",line): #log starts with a digit, indicating this is an access.log log
         #used for malicious web server access bad actor
-        print('************ACCESS LOG*************')
+        #print('************ACCESS LOG*************')
         ip = re.split("\s", line, 1)[0]
-        print("ip = " + ip)
+        #print("ip = " + ip)
         line = re.split("\s", line, 1)[1]
         line = re.split("(?<=-)\s", line, 1)[1]
         user = re.split("\s", line, 1)[0]
-        print("user = " + user)
+        #print("user = " + user)
         line = re.split("\s\[", line, 1)[1]
         date = re.split(":", line, 1)[0]
-        print("date = " + date)
+        #print("date = " + date)
         line = re.split(":", line, 1)[1]
         time = re.split("]", line, 1)[0]
-        print("time = " + time)
+        #print("time = " + time)
         msg = re.split("] ", line, 1)[1]
-        print("message =" + msg, end = "" ) #TODO: remove \n from the end of msg
+        msg = re.split("\t", msg, 1)[0]
+        #print("message =" + msg, end = "" ) #TODO: remove \n from the end of msg
         log = [ip, user, date, time, msg]
         baggedLog = bag(log)
-        print("bagged log: ", end = "")
-        print(baggedLog)
-        logSet.append(baggedLog)
-        print("")
+        del log
+        #print("bagged log: ", end = "")
+        #print(baggedLog)
+        baggedLogSet.append(baggedLog)
+        #print("")
 
     elif re.search("^[A-Za-z]",line): #log starts with a alphabetical character, indicating this is an auth.log log
-        print('************AUTH LOG*************')
+        #print('************AUTH LOG*************')
         date = re.split("(?<=.{6})\s", line, 1)[0]
-        print("date = " + date)
+        #print("date = " + date)
         line = re.split("(?<=.{6})\s", line, 1)[1]
         time = re.split("(?<=.{8})\s", line, 1)[0]
-        print("time = " + time)
+        #print("time = " + time)
         line = re.split("(?<=.{8})\s", line, 1)[1]
         user = re.split("\s", line)[0]
-        print("user = " + user)
-        msg = re.split("\s", line, 1)[1]
-        print("message =" + msg, end = "" ) #TODO: remove \n from the end of msg
+        #print("user = " + user)
+        msg = re.split("\s|\t", line, 1)[1]
+        msg = re.split("\t", msg, 1)[0]
+        #print("message =" + msg, end = "" ) #TODO: remove \n from the end of msg
         log = [date, time, user, msg]
         baggedLog = bag(log)
-        print("bagged log: ", end = "")
-        print(baggedLog)
-        logSet.append(baggedLog)
-        print("")
+        del log
+        #print("bagged log: ", end = "")
+        #print(baggedLog)
+        baggedLogSet.append(baggedLog)
+        #print("")
 
 logs.close()
 
 #print("Dictionary: ")
-print(dictionary)
+#print(dictionary)
 
-maxLen = len(logSet[-1])
-for i in range (len(logSet)): # make all subarrays same length
-    logSet[i].extend([0]*(maxLen - len(logSet[i])))
+maxLen = len(baggedLogSet[-1])
+for i in range (len(baggedLogSet)): # make all subarrays same length
+    baggedLogSet[i].extend([0]*(maxLen - len(baggedLogSet[i])))
 
-print(len(logSet[0]))
+#print(len(baggedLogSet))
 
-Kmean = KMeans(n_clusters=2)
-Kmean.fit(np.array(logSet))
+val = list(dictionary.values())
 
-print(Kmean.cluster_centers_)
+for i in range(len(baggedLogSet)):
+    for j in range(len(baggedLogSet[i])):
+        baggedLogSet[i][j] = baggedLogSet[i][j] * np.log(len(baggedLogSet)/val[j])
+
+#print(baggedLogSet)
+
+Kmean = KMeans(n_clusters=8)
+Kmean.fit(np.array(baggedLogSet))
+
+#print(Kmean.cluster_centers_)
 print(Kmean.labels_)
-print(len(Kmean.labels_))
+
+#print(len(Kmean.labels_))
+
+clusterLabels = list(Kmean.labels_)
+
+#for i in range(8):
+    #print("\n" + str(i) + "\n")
+    #for j in range(len(clusterLabels)):
+        #if(clusterLabels[j] == i):
+            #print(logSet[j])
 
 print("done")
