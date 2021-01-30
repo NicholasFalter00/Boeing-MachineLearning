@@ -46,7 +46,7 @@ def bag(log): #implement bagofwords
             #dictionary.append(feature) #add it to the dictionary (when using list object for dictionary)
             dictionary.update({feature: 1}) #add it to the dictionary (when using dictionary object for dictionary)
             baseLog.append(0) #add a zero for the new feature
-            baggedLog.append(1) #Count the new feature
+            baggedLog.append(1) #count the new feature
     return baggedLog
 
 for line in logs:
