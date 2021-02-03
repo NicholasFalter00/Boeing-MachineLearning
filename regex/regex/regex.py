@@ -1,6 +1,7 @@
 import re
 
 logs = open('C:/Users/Test/Desktop/Nicholas Falter/School (Current)/Senior Design/Code/logs.txt', 'r') #TODO: INSERT LOCATION OF LOG FILE HERE
+#dictionary = []
 dictionary = {}
 baseLog = [] #Will be added to as dictionary is populated. Has a 0 for each dictionary member.
 logSet = []
@@ -10,26 +11,6 @@ trainingLabels = ["safe","safe","safe","safe","safe","safe","safe","safe","safe"
 #        if member == feature:
 #            return 1
 #    return 0
-
-"""
-#this method counts the number of occurences of features in the entire file (because baggedLog and baseLog refer to the same thing. This is poor code)
-#TODO: Remove or improve this function.
-def bag(log): #implement bagofwords
-    baggedLog = baseLog #start with a vector of 0's (n zeros, n dictionary members)
-    for feature in log: #look at each feature in the log
-        count = 0 #keep track of which member of the dictionary is being compared
-        inDictionary = 0 #represents if the feature is found in the dictionary
-        for member in dictionary: #search through dictionary
-            if member == feature: #if feature is in dictionary
-                baggedLog[count] += 1 #add 1 to the frequency of the feature
-                inDictionary = 1
-                break #exit search for feature in dictionary
-            count += 1
-        if not inDictionary: #if feature isn't in dictionary
-            dictionary.append(feature) #add it to the dictionary
-            baseLog.append(1) #add a zero for the new feature
-    return baggedLog
-"""
 
 def bag(log): #implement bagofwords
     baggedLog = baseLog.copy() #start with a vector of 0's (n zeros, n dictionary members)
@@ -46,7 +27,7 @@ def bag(log): #implement bagofwords
             #dictionary.append(feature) #add it to the dictionary (when using list object for dictionary)
             dictionary.update({feature: 1}) #add it to the dictionary (when using dictionary object for dictionary)
             baseLog.append(0) #add a zero for the new feature
-            baggedLog.append(1) #count the new feature
+            baggedLog.append(1) #Count the new feature
     return baggedLog
 
 for line in logs:
@@ -242,7 +223,7 @@ def cal_accuracy(y_test, y_pred):
     accuracy_score(y_test,y_pred)*100) 
       
     print("Report : ", 
-    classification_report(y_test, y_pred)) 
+    classification_report(y_test, y_pred))
   
 # Driver code 
 def main(): 
