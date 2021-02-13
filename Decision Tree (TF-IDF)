@@ -1,17 +1,27 @@
-import re
+import os
+import numpy as np
+import pandas as pd
+from sklearn.feature_extraction.text import TfidfVectorizer
+import random
 
-logs = open('C:/Users/Test/Desktop/Nicholas Falter/School (Current)/Senior Design/Code/logs.txt', 'r') #TODO: INSERT LOCATION OF LOG FILE HERE
+logs = open(os.path.join(os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__))), 'logs.txt'), 'r', encoding="utf8") #Opens logs.txt (has to be in same directory as python script)
 #dictionary = []
-dictionary = {}
-baseLog = [] #Will be added to as dictionary is populated. Has a 0 for each dictionary member.
-logSet = []
-trainingLabels = ["safe","safe","safe","safe","safe","safe","safe","safe","safe","safe","safe","safe","safe","safe","safe","safe","safe","safe","safe","safe","Unauthorized Web Server Logins","Unauthorized Web Server Logins","Unauthorized Web Server Logins","Unauthorized Web Server Logins","Unauthorized Web Server Logins","Unauthorized Web Server Logins"]
+#dictionary = {}
+#baseLog = [] #Will be added to as dictionary is populated. Has a 0 for each dictionary member.
+#logSet = []
+
+#training labels for error logs
+#trainingLabels = ["safe","safe","safe","safe","safe","safe","safe","safe","safe","safe","safe","safe","safe","safe","safe","safe","safe","safe","safe","safe","Unauthorized Web Server Logins","Unauthorized Web Server Logins","Unauthorized Web Server Logins","Unauthorized Web Server Logins","Unauthorized Web Server Logins","Unauthorized Web Server Logins"]
+
+#training labels for combined logs
+trainingLabels = ["safe","safe","safe","safe","safe","safe","safe","safe","safe","safe","safe","safe","safe","safe","safe","safe","safe","safe","safe","safe","unsafe","unsafe","unsafe","unsafe","unsafe","unsafe","safe","safe","safe","safe","safe","safe","safe","safe","safe","safe","unsafe","unsafe","unsafe","unsafe","unsafe","unsafe","unsafe","unsafe","unsafe","unsafe","unsafe","unsafe","unsafe","safe","safe","safe","safe","safe","safe","safe","safe","safe","safe","safe","safe","safe","safe","safe","safe","safe","safe","safe","safe","safe","unsafe","unsafe","unsafe","unsafe","unsafe","unsafe","unsafe","unsafe","unsafe","unsafe","unsafe","unsafe","unsafe","unsafe","unsafe","unsafe","unsafe","unsafe","unsafe","unsafe","unsafe","unsafe","unsafe","unsafe","unsafe","unsafe","unsafe","unsafe","unsafe","unsafe","unsafe","unsafe","unsafe","unsafe","unsafe","unsafe","unsafe","unsafe","unsafe","unsafe","unsafe","unsafe","unsafe","unsafe","unsafe","unsafe","unsafe","unsafe","unsafe","unsafe","unsafe","unsafe","unsafe","unsafe","unsafe","unsafe","unsafe","unsafe","unsafe","unsafe","unsafe","unsafe","unsafe","unsafe","unsafe","unsafe","unsafe","unsafe","unsafe","unsafe","unsafe","unsafe","unsafe","unsafe","unsafe","unsafe","unsafe","unsafe","unsafe","unsafe","safe","safe","safe","safe","unsafe","safe","safe","unsafe","unsafe","unsafe","safe","safe","safe","unsafe","unsafe","unsafe","safe","unsafe","unsafe","unsafe"]
+
 #def inDictionary(feature):
 #    for member in dictionary:
 #        if member == feature:
 #            return 1
 #    return 0
-
+"""
 def bag(log): #implement bagofwords
     baggedLog = baseLog.copy() #start with a vector of 0's (n zeros, n dictionary members)
     for feature in log: #look at each feature in the log
@@ -30,6 +40,50 @@ def bag(log): #implement bagofwords
             baggedLog.append(1) #Count the new feature
     return baggedLog
 
+def inputVectorization(): #returns a list of bag of words representations (separated by spaces) of logs in logs.txt
+    logSet = []
+    for line in logs: #reads logs and counts number of occurences of words separated by spaces
+        line = re.split("\t|\n", line, 1)[0] #removes new line and tab characters from log
+        #print(re.split("\s+", line), end = "\n\n") #re.split("\s+", line) makes a list of each element of the log (elements are determined by spaces)
+        #baggedLog = bag(re.split("\s+", line))
+        #print(baggedLog)
+        #logSet.append(baggedLog)
+        logSet.append(bag(re.split("\s+", line))) #creates a list of the bag of words representation of all logs in logs.txt
+
+    maxLen = len(logSet[-1])
+    for i in range (len(logSet)): # make all subarrays same length
+        logSet[i].extend([0]*(maxLen - len(logSet[i])))
+    #print(logSet)
+    
+
+    return logSet"""
+
+#@@@@@@@@@@@@@@@@@@@@@
+# Vectorizes log file into numerical array
+vectorizer = TfidfVectorizer()
+vectors = vectorizer.fit_transform(logs)
+feature_names = vectorizer.get_feature_names()
+dense = vectors.todense()
+denselist = dense.tolist()
+for i in range(len(denselist)):
+        denselist[i].insert(0,trainingLabels[i])
+
+random.shuffle(denselist)
+
+df = pd.DataFrame(denselist)
+#df = pd.DataFrame(denselist, columns=feature_names)
+#print(feature_names)
+#print(df)
+#@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+
+
+"""
+for i in range(len(logSet)):
+        logSet[i].insert(0,trainingLabels[i])
+#@@@@@@@@@@@@@@@@@@@@@@@@@"""
+
+
+"""
 for line in logs:
     if re.search("^\[",line): #log starts with a square bracket, indicating this is an error.log log
         line = re.split("\[", line, 1)[1]
@@ -111,17 +165,50 @@ for line in logs:
         #print(baggedLog)
         logSet.append(baggedLog)
         #print("")
+"""
+"""
+for line in logs:
+    line = re.split("\t|\n", line, 1)[0]
+    #print(re.split("\s+", line)) #re.split("\s+", line) makes a list of each element of the log with elements separated by spaces
+    #print()
+    #baggedLog = bag(re.split("\s+", line))
+    #print(baggedLog)
+    #logSet.append(baggedLog)
+    logSet.append(bag(re.split("\s+", line)))
+    #print(logSet)
+"""
+"""
+for line in logs:
+    log = [] #used to store logs before they're bagged @@Note: making this a global parameter seems to make detection work great@@
+    while line != "":
+        #line = re.split("\t|\n", line, 1)[0]
+        word = re.split("\s+", line, 1)[0]
+        #print(word)
+        line = re.split("\s+", line, 1)[1]
+        log.append(word)
+    print(log)
+    print()
+    print()
+    baggedLog = bag(log)
+    logSet.append(baggedLog)
+"""
+"""
+for line in logs:
 
-logs.close()
+    print()
+    baggedLog = bag(log)
+    logSet.append(baggedLog)
+"""
+
 
 #print("Dictionary: ")
 #print(dictionary)
 
-maxLen = len(logSet[-1])
+"""maxLen = len(logSet[-1])
 for i in range (len(logSet)): # make all subarrays same length
     logSet[i].extend([0]*(maxLen - len(logSet[i])))
 
-val = list(dictionary.values())
+val = list(dictionary.values())"""
 
 #print("logSet: ")
 #print(logSet)
@@ -133,23 +220,17 @@ val = list(dictionary.values())
 
 #@@@@@@@@@@@@@@End of parameterization, start of machine learning (code taken from: https://www.geeksforgeeks.org/decision-tree-implementation-python/ ) @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 # Importing the required packages 
-import numpy as np 
-import pandas as pd 
 from sklearn.metrics import confusion_matrix 
 from sklearn.model_selection import train_test_split 
 from sklearn.tree import DecisionTreeClassifier 
 from sklearn.metrics import accuracy_score 
 from sklearn.metrics import classification_report 
 
-#for i in range(len(logSet)):
-#    logSet[i].insert(0,trainingLabels[i])
 
-for i in range(len(logSet)):
-    logSet[i].insert(0,trainingLabels[i])
 
 # Function importing Dataset 
 def importdata(): 
-    balance_data = pd.DataFrame(logSet)
+    balance_data = df
 
     """
     balance_data = pd.read_csv( 
@@ -250,3 +331,5 @@ def main():
 # Calling main function 
 if __name__=="__main__": 
     main() 
+
+logs.close()
