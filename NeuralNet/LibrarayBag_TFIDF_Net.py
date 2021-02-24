@@ -4,16 +4,22 @@ import numpy as np
 import pandas as pd
 from sklearn.feature_extraction.text import TfidfVectorizer
 import math
-logs = open('S:/Logs/allLogs.txt', 'r', encoding="utf8")
-#import re
 
+#create TF-IDF representation of log file
+logs = open('S:/Logs/allLogs.txt', 'r', encoding="utf8")
 vectorizer = TfidfVectorizer()
 vectors = vectorizer.fit_transform(logs)
 logSet = np.array(vectors.toarray())
-#labels for our set of logs
+logs.close()
+
+logs = open('S:/Logs/allLogs.txt', 'r', encoding="utf8") #open same file from beginning to get lines stored in array
+lines = np.array(logs.readlines())
+logs.close()
+
+#labels for our logs
 logLabels = np.array([0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,1,0,0,1,1,1,0,0,0,1,1,1,0,1,1,1])
 
-""" labels for school secure logs
+""" #labels for school logs
 logLabels = np.zeros(len(logSet), dtype=int)
 badActors = [7,8,9,73,74,75,76,77,77,78,78,2345,2346,2347,2348,2348,2349,2349,2601,2602,2603,2604,2605,2606,2607,3061,3062,3063,3064,3065,3066,3067,3068,3069,3070,3071,3072,3073,4625,4626,4627,4628,4629,4630,4631,4632,4633,4634,4635,4636,4637,5355,5356,5357,5358,5359,5360,5361,5362,5363,5364,5365,5366,5367,5368,9294,9295,
              9296,9297,9298,9299,9300,9301,9302,9303,9304,9305,9306,9307,9308,9309,9310,9311,12442,12443,12443,1344,13450,13451,13452,13453,13454,13455,13456,13457,13458,13459,13460,13461,15109,15110,15111,15112,15113,15114,15115,15116,15117,15118,15119,15120,16946,16947,16948,16949,16950,16950,16951,16951,16952,16953,16954,16955,16956,
@@ -25,37 +31,49 @@ for i in badActors:
     logLabels[i-1] = 1
 """
 
-#Shuffles logs and labels in the same way
+#randomize logSet, labels, and log messages in same way if data set is pretty small
+#in future should maybe randomize set before feeding it into program
 randomize = np.arange(len(logSet))
 np.random.shuffle(randomize)
 logSet = logSet[randomize]
 logLabels = logLabels[randomize]
+lines = lines[randomize]
 
-#Splits into training and testing data
-trainingLogs = np.array(logSet[0:math.floor(len(logSet)/2)])
-testLogs = np.array(logSet[math.floor(len(logSet)/2):len(logSet)])
-trainingLabels = np.array(logLabels[0:math.floor(len(logLabels)/2)])
-testLabels = np.array(logLabels[math.floor(len(logLabels)/2):len(logLabels)])
+
+#Split arrays along the defined split index
+splitIndex = math.floor(len(logSet)/2)
+lines = lines[splitIndex:len(lines)]
+trainingLogs = np.array(logSet[0:splitIndex])
+testLogs = np.array(logSet[splitIndex:len(logSet)])
+trainingLabels = np.array(logLabels[0:splitIndex])
+testLabels = np.array(logLabels[splitIndex:len(logLabels)])
+print(lines.shape)
+print(trainingLabels.shape)
+print(testLabels.shape)
 
 
 
 
 model = keras.Sequential([
-                          keras.layers.Flatten(input_shape = (len(logSet[1]),)), #Number of features input, equal to length of dictionary
-                          keras.layers.Dense(64, activation = "relu"), #I believe this is the number of nodes in the middle layer, don't quote me on that
+                          keras.layers.Flatten(input_shape = (len(logSet[1]),)), #array of unspecified length, with subarrays the length of trainingLogs
+                          keras.layers.Dense(128, activation = "relu"), #Number of nodes in the hidden layer
                           keras.layers.Dense(2,activation="softmax") # number of possible labels
                           ])
 
-model.compile(optimizer = "adam", loss = "sparse_categorical_crossentropy", metrics = ["accuracy"])
+model.compile(optimizer = "adam", loss = "sparse_categorical_crossentropy", metrics = ["accuracy"]) #found nadam and adam to be best optimizers
 
-model.fit(trainingLogs, trainingLabels, epochs=10) #epochs is number of times it will run through the data, 
-                                                 
+model.fit(trainingLogs, trainingLabels, epochs=10) #epochs is number of times it will run through and train on the data
 testLoss, testAcc = model.evaluate(testLogs, testLabels)
 prediction = model.predict(testLogs)
 
-for i in range (len(testLabels)):
-   # if testLabels[i] != np.argmax(prediction[i]):
-        print('Actual: ' , testLabels[i] , '  Prediction: ' , np.argmax(prediction[i]))
+categories = ["Safe  ", "Unsafe"]
+for i in range (len(testLogs)):
+    if testLabels[i] != np.argmax(prediction[i]): 
+        #print('Line #: ', i + 1 + splitIndex) This only points back to text file line if not randomized
+        print(lines[i], end = "")
+        print('Actual: ' , categories[testLabels[i]], '  Prediction: ' , categories[np.argmax(prediction[i])], '\n')
+   # else:
+       # print('Actual: ' , categories[testLabels[i]], '  Prediction: ' , categories[np.argmax(prediction[i])])
 
 
 
