@@ -1,1 +1,1 @@
-# Boeing-MachineLearning
+# Boeing-MachineLearning [LogisticRegression]
