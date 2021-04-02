@@ -20,15 +20,17 @@ with open(filename, 'r', encoding='utf8') as logs:
     for message in logs:
         message = message.strip('\n')
         # An error ssh-related error message appears when too many sign-in attempts have been tried. This is checked for and automatically labeled.
-        if 'sshd[' in message and 'error' in message:
+        if 'sshd[' in message and ('authentication failures' in message or 'maximum authentication attempts' in message):
             label = "ssh"
         # Any other ssh message will be safe.
         elif 'sshd[' in message:
             label = "safe"
         # 'sudo apt autoremove' and 'sudo apt-get autoremove' are flagged as a bad actor.
-        elif 'sudo' in message and 'upgrade' not in message and 'update' not in message:
+        elif 'sudo' in message and 'autoremove' in message:
             label = "su"
         elif 'sudo' in message and 'incorrect password attempts' in message:
+            label = 'su'
+        elif 'sudo' in message and 'authentication failure' in message:
             label = 'su'
         # The code 'AH01618' occurs when an invalid username is entered. This situation is marked as a bad actor.
         elif 'AH01618' in message:
