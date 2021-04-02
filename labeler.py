@@ -24,16 +24,18 @@ with open(filename, 'r', encoding='utf8') as logs:
             label = "ssh"
         # Any other ssh message will be safe.
         elif 'sshd[' in message:
-            label = 'safe'
+            label = "safe"
         # 'sudo apt autoremove' and 'sudo apt-get autoremove' are flagged as a bad actor.
-        elif 'sudo' in message and 'autoremove' in message:
+        elif 'sudo' in message and 'upgrade' not in message and 'update' not in message:
             label = "su"
+        elif 'sudo' in message and 'incorrect password attempts' in message:
+            label = 'su'
         # The code 'AH01618' occurs when an invalid username is entered. This situation is marked as a bad actor.
         elif 'AH01618' in message:
             label = 'ws'
         # The code 'AH01617' occurs when an invalid password is entered.
         #elif 'AH01617' in message:
-            #label = 'ws'
+            #label = 'ws' 
         # The user enters the appropriate label for the current message
         else:
             print("{} Log Message: {}".format(counter, message))
