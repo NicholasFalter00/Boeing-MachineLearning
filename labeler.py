@@ -9,7 +9,8 @@ import json
 from typing import Type
 
 
-labels = []
+Mlabels = []
+Blabels = []
 counter = 1
 
 Tk().withdraw() # we don't want a full GUI, so keep the root window from appearing
@@ -28,6 +29,7 @@ with open(filename, 'r', encoding='utf8') as logs:
         # 'sudo apt autoremove' and 'sudo apt-get autoremove' are flagged as a bad actor.
         elif 'sudo' in message and 'autoremove' in message:
             label = "su"
+        # Failed password attempts are flagged as bad actors
         elif 'sudo' in message and 'incorrect password attempts' in message:
             label = 'su'
         elif 'sudo' in message and 'authentication failure' in message:
@@ -43,13 +45,20 @@ with open(filename, 'r', encoding='utf8') as logs:
             print("{} Log Message: {}".format(counter, message))
             label = input("Enter label: ")
 
-        labels.append(label)
+        Mlabels.append(label)
+        if label == 'safe':
+            Blabels.append(0)
+        else:
+            Blabels.append(1)
 
         counter += 1
 
 # Grabs the name of the log file to use in creating the file for its labels.
 filename = str(filename).split('/')[-1].strip('.txt')
 
-if len(labels):
+if len(Mlabels):
     with open("{}_labels.txt".format(filename), 'w', encoding='utf8') as file:
-        json.dump(labels, file)
+        file.write('multinomialTrainingLabels = ')
+        json.dump(Mlabels, file)
+        file.write('\nbinomialTrainingLabels = ')
+        json.dump(Blabels, file)
