@@ -71,11 +71,19 @@ def MakePredictions(): # Writes each log and its corresponding prediction to a f
 
     #write predictions to output file
     f = open("AlgorithmOutput.txt", "w") #"w" will overwrite any existing content, "a" will append to the end of the file. Will make a file called "AlgorithmOutput.txt" if one doesn't already exist
-    logs = open(os.path.join(os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__))), 'BadActorLogs.txt'), 'r', encoding="utf8") # Opens logs.txt (has to be in same directory as python script)
+    logs = open(os.path.join(os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__))), 'unOrgLogs.txt'), 'r', encoding="utf8") # Opens logs.txt (has to be in same directory as python script)
+    frequencies = {'safe': 0, 'Unauthorized Web Server Logins': 0, 'malicious webserver access': 0, 'ddos': 0, 'port scan': 0, 'ssh': 0, 'unauthorized superuser privileges': 0}
+    for i in range(len(predictions)):
+        frequencies[predictions[i]] = (frequencies.get(predictions[i]) + 1)
+    for badActor in frequencies:
+        frequencies[badActor] = (frequencies.get(badActor)/len(predictions))*100
+   
     for i in range(len(predictions)): # Write every log and its corresponding prediction to file
         f.write("Prediction: ")
         f.write(predictions[i]) # Write prediction to file
-        f.write("   log: ")
+        f.write(" Frequency: ")
+        f.write(f'{frequencies.get(predictions[i]):.4g}')
+        f.write("%   log: ")
         f.write(logs.readline().rstrip('\n')) # Write original log to file (not inluding '\n')
         f.write("\n")
     f.close()
